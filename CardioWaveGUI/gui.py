@@ -25,6 +25,8 @@ from cdwave import hillcurve
 from cdwave import fnc
 from cdwave import __version__
 
+from . import draw
+
 from . import config
 
 logger = logging.getLogger(__name__)
@@ -114,6 +116,7 @@ class NewForm(Form):
     def connections(self, window):
         self.window = window
         self.pushButton.clicked.connect(self.show_dir)
+        self.treeView.clicked.connect(self.select_file)
         self.tableWidget.clicked.connect(self.filter_table_click)
         self.tableWidget_2.clicked.connect(self.item_table_click)
         self.table2.clicked.connect(self.parameter_table_click)
@@ -199,7 +202,6 @@ class NewForm(Form):
             _dir = '.'
         self.treeView.setModel(model)
         self.treeView.setRootIndex(model.index(_dir))
-        self.treeView.clicked.connect(self.select_file)
 
     def filter_table_click(self, signal):
         column = signal.data()
@@ -246,12 +248,13 @@ class NewForm(Form):
         df = self.core_data.filtered_df.copy()
         df[p] = [x.get_parameters()[p] for x in df.waveform]
         try:
-            popt, perr = hillcurve.fit_parameter(df, p, ax)
+            popt, perr, curve = hillcurve.fit_parameter(df, p)
             self.window.statusBar().showMessage('{}, {}'.format(popt, perr))
+            draw.plot_hillcurve(curve, ax=ax, ylabel=p)
         except ValueError as e:
             logger.warning("Cannot fit the curve, %s", str(e))
         except RuntimeError as e:
-            logger.warning("Cannot fit the curve")
+            logger.warning("Cannot fit the curve") 
         self.canvas2.draw()
 
     def welch_transform(self, _):
