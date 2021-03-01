@@ -25,13 +25,12 @@ from cdwave import hillcurve
 from cdwave import fnc
 from cdwave import __version__
 
-from . import draw
-
-from . import config
+from CardioWaveGUI import draw
+from CardioWaveGUI import config
 
 logger = logging.getLogger(__name__)
 Form, Window = uic.loadUiType(os.path.join(config.root, "main.ui"))
-logger.setLevel('DEBUG')
+logger.setLevel('INFO')
 DEBUG = False
 
 
@@ -121,8 +120,6 @@ class NewForm(Form):
         self.tableWidget_2.clicked.connect(self.item_table_click)
         self.table2.clicked.connect(self.parameter_table_click)
         self.bt_fix.clicked.connect(self.fit_curve)
-        self.bt_unfix.clicked.connect(self.fft_transform)
-        self.bt_smooth.clicked.connect(self.test)
         self.bt_add_filter.clicked.connect(self.add_filter_from_list)
         self.bt_add_filter_2.clicked.connect(self.add_filter_from_table)
         self.bt_delete_filter.clicked.connect(self.delete_filter)
@@ -153,6 +150,8 @@ class NewForm(Form):
         self.scene2.addWidget(self.canvas2)
         self.scene3.addWidget(self.canvas3)
         self.actionThis_waveform.triggered.connect(self.export_waveform)
+        self.action_fft.triggered.connect(self.fft_transform)
+        self.action_welch.triggered.connect(self.welch_transform)
         self.comboBox.activated.connect(self.activate_filter_list)
         self.comboBox_2.activated.connect(self.activate_filter_table)
         self.comboBox_3.activated.connect(self.activate_item_table)
@@ -230,7 +229,13 @@ class NewForm(Form):
         if not item:
             return None
         parameter_dict = {'Freq': 'freq', 'R/D': 'rd_ratio', 'Lambda': 'avg_lambda',
-                          'Peaks': 'n_peak', 'Up': 'up_length', 'Max': 'maximum'}
+                          'Peaks': 'n_peak', 'Up': 'up_length', 'Max': 'maximum',
+                          'L-std': 'std_lambda', 'A-std': 'std_amplitude',
+                          'PW10': 'PW10_mean', 'stdPW10': 'PW10_std',
+                          'PW25': 'PW25_mean', 'stdPW25': 'PW25_std',
+                          'PW50': 'PW50_mean', 'stdPW50': 'PW50_std',
+                          'PW80': 'PW80_mean', 'stdPW80': 'PW80_std',
+                          'PW90': 'PW90_mean', 'stdPW90': 'PW90_std'}
         if item in parameter_dict:
             p = parameter_dict[item]
             self.selecting_parameter = p
@@ -270,6 +275,8 @@ class NewForm(Form):
         return True
 
     def fft_transform(self, _):
+        if self.waveform is None:
+            return None
         signals = self.waveform.resample()
         frq, psd = fnc.wave_transform(signals, method='fft')
         # Frequency should not be higher than 1, so we pick only first 100
@@ -440,7 +447,17 @@ class NewForm(Form):
                 (7, 2, 'std_tail'),
                 (7, 3, 'tail_proportion'),
                 (8, 1, 'avg_shoulder'),
-                (8, 3, 'avg_shoulder_tail')
+                (8, 3, 'avg_shoulder_tail'),
+                (9, 1, 'PW10_mean'),
+                (9, 3, 'PW10_std'),
+                (10, 1, 'PW25_mean'),
+                (10, 3, 'PW25_std'),
+                (11, 1, 'PW50_mean'),
+                (11, 3, 'PW50_std'),
+                (12, 1, 'PW80_mean'),
+                (12, 3, 'PW80_std'),
+                (13, 1, 'PW90_mean'),
+                (13, 3, 'PW90_std')
             ]
             for prop in properties:
                 p = r[prop[2]]
@@ -527,7 +544,7 @@ class NewForm(Form):
 def main():
     if sys.platform == 'win32':
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-            'waveform')
+            'CardioWaveGUI')
     app = QApplication([])
     icon = QIcon(os.path.join(config.root, 'ico.png'))
     app.setWindowIcon(icon)
@@ -542,4 +559,6 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
+    DEBUG = True
+    logger.setLevel('DEBUG')
     main()
