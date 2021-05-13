@@ -5,28 +5,22 @@ import ctypes
 import pickle
 import webbrowser
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtCore import QDir, pyqtSignal
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QDirModel
-from PyQt5.QtWidgets import QTableWidgetItem
-from PyQt5.QtWidgets import QGraphicsScene
-from PyQt5.QtWidgets import QFileDialog
-from PyQt5.QtWidgets import QInputDialog
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QApplication, QDirModel, QTableWidgetItem, QGraphicsScene
+from PyQt5.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 
+from cdwave import data, hillcurve, fnc
 from cdwave.fnc import Waveform, draw_multiple
-from cdwave import data
-from cdwave import hillcurve
-from cdwave import fnc
-from cdwave import __version__
+from cdwave import __version__ as cdwave_version
 
-from CardioWaveGUI import draw
-from CardioWaveGUI import config
+from CardioWaveGUI import __version__
+from CardioWaveGUI import draw, plateview, config
 
 logger = logging.getLogger(__name__)
 Form, Window = uic.loadUiType(os.path.join(config.root, "main.ui"))
@@ -37,6 +31,7 @@ DEBUG = False
 class ProcessWindow(QtWidgets.QDialog):
     str_signal = pyqtSignal(str)
     list_signal = pyqtSignal(list)
+
     def __init__(self, parent):
         super(ProcessWindow, self).__init__(parent)
         uic.loadUi('process_dialog.ui', self)
@@ -51,7 +46,7 @@ class ProcessWindow(QtWidgets.QDialog):
 
     def process_wrapper(self, status=-1, total=0):
         self.list_signal.emit([status, total])
-    
+
     def text_wrapper(self, text):
         self.str_signal.emit(text)
 
@@ -158,8 +153,11 @@ class NewForm(Form):
         self.window.closeEvent = self.closeEvent
         # Menu
         self.actionThis_waveform.triggered.connect(self.export_waveform)
+        self.actionParameters.triggered.connect(self.export_parameters)
         self.actionBug_Report.triggered.connect(self.bug_report)
         self.actionAbout.triggered.connect(self.about_page)
+        self.actionPlate_Viewer.triggered.connect(self.show_plate_viewer)
+        self.actionOpen.triggered.connect(self.open_file)
         if 'path' in self.config.all_config['general']:
             self.lineEdit.setText(self.config.all_config['general']['path'])
 
@@ -171,6 +169,10 @@ class NewForm(Form):
         if self.treeView.model().isDir(signal):
             self.browse_dir = file_path
             self.lineEdit.setText(file_path)
+        else:
+            self.selected_file(file_path)
+
+    def selected_file(self, file_path):
         try:
             dataset = data.Dataset.loaddata(file_path)
             if not dataset:
@@ -253,13 +255,17 @@ class NewForm(Form):
         df = self.core_data.filtered_df.copy()
         df[p] = [x.get_parameters()[p] for x in df.waveform]
         try:
-            popt, perr, curve = hillcurve.fit_parameter(df, p)
-            self.window.statusBar().showMessage('{}, {}'.format(popt, perr))
-            draw.plot_hillcurve(curve, ax=ax, ylabel=p)
+            # popt, perr, curve = hillcurve.fit_parameter(df, p)
+            conc, resp = df.concentration, df[p]
+            curves = [hillcurve.TCPLHill(conc, resp),
+                      hillcurve.TCPLGainLoss(conc, resp),
+                      hillcurve.TCPLPlain(conc, resp)]
+            # self.window.statusBar().showMessage('{}, {}'.format(popt, perr))
+            draw.plot_tcpl_curves(curves, ax=ax, ylabel=p)
         except ValueError as e:
             logger.warning("Cannot fit the curve, %s", str(e))
         except RuntimeError as e:
-            logger.warning("Cannot fit the curve") 
+            logger.warning("Cannot fit the curve")
         self.canvas2.draw()
 
     def welch_transform(self, _):
@@ -461,7 +467,7 @@ class NewForm(Form):
             ]
             for prop in properties:
                 p = r[prop[2]]
-                if isinstance(p, pd.np.floating):
+                if isinstance(p, np.floating):
                     item = '{:.3f}'.format(p)
                 else:
                     item = str(p)
@@ -526,20 +532,51 @@ class NewForm(Form):
                 self.draw_waveforms()
                 self.update_tables()
                 self.config.crt_config['default_waveform'] = num
-    
+
     # menu
     def bug_report(self):
         webbrowser.open_new('https://github.com/zealseeker/CardioWave/issues')
-    
+
     def about_page(self):
         text = """CardioWave is a tool for waveform analysis
+
         URL: http://https://github.com/zealseeker/CardioWave/
         Author: Hongbin Yang
-        Current Version: {}
-        """.format(__version__)
+        CardioWave Version: {}
+        GUI version: {}
+        """.format(cdwave_version, __version__)
         QMessageBox(QMessageBox.Information, "CardioWave - viewer",
-                        text,
-                        QMessageBox.Ok).exec_()
+                    text,
+                    QMessageBox.Ok).exec_()
+
+    def export_parameters(self):
+        default_directory = self.config.all_config['general'].get(
+            'export_directory', '.')
+        fname, _ = QFileDialog.getSaveFileName(self.window, 'Save waveform',
+                                               default_directory, "Text File (*.csv)")
+        if not fname:
+            return None
+        self.config.all_config['general']['export_directory'] = os.path.dirname(
+            fname)
+        dataset = self.core_data
+        df = dataset.get_parameter_df()
+        df.to_csv(fname)
+
+    def open_file(self):
+        default_directory = self.config.all_config['general'].get(
+            'path', '.')
+        fname, _ = QFileDialog.getOpenFileName(
+            self.window, 'Open a wavefom file', default_directory, "Gzip File (*.pickle.gz)")
+        self.selected_file(fname)
+
+    def show_plate_viewer(self):
+        if self.core_data is None:
+            QMessageBox(QMessageBox.Warning, "Error",
+                        "Select the datset first.", QMessageBox.Ok).exec_()
+            return
+        plateviewer = plateview.PlateViewer(self, self.window, self.core_data)
+        plateviewer.show()
+
 
 def main():
     if sys.platform == 'win32':
@@ -557,6 +594,7 @@ def main():
     form.show_dir()
     _window.show()
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     DEBUG = True

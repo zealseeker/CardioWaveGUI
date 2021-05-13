@@ -824,7 +824,9 @@ compound=Doxorubicin</string>
       <string>Export</string>
      </property>
      <addaction name="actionThis_waveform"/>
+     <addaction name="actionParameters"/>
     </widget>
+    <addaction name="actionOpen"/>
     <addaction name="menuExport"/>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -838,6 +840,7 @@ compound=Doxorubicin</string>
      <addaction name="action_fft"/>
      <addaction name="action_welch"/>
     </widget>
+    <addaction name="actionPlate_Viewer"/>
     <addaction name="menuLab"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -874,6 +877,21 @@ compound=Doxorubicin</string>
   <action name="action_welch">
    <property name="text">
     <string>Welch</string>
+   </property>
+  </action>
+  <action name="actionParameters">
+   <property name="text">
+    <string>Parameters</string>
+   </property>
+  </action>
+  <action name="actionPlate_Viewer">
+   <property name="text">
+    <string>Plate Viewer</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
    </property>
   </action>
  </widget>
