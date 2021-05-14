@@ -6,121 +6,133 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1118</width>
-    <height>699</height>
+    <width>1200</width>
+    <height>725</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>CardioWave - plate view</string>
   </property>
-  <widget class="QTableView" name="tableView">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>60</y>
-     <width>1091</width>
-     <height>631</height>
-    </rect>
-   </property>
-   <attribute name="horizontalHeaderDefaultSectionSize">
-    <number>65</number>
-   </attribute>
-   <attribute name="horizontalHeaderMinimumSectionSize">
-    <number>50</number>
-   </attribute>
-  </widget>
-  <widget class="QComboBox" name="plateCombo">
-   <property name="geometry">
-    <rect>
-     <x>80</x>
-     <y>20</y>
-     <width>171</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>20</y>
-     <width>51</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Plate:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>270</x>
-     <y>20</y>
-     <width>41</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>State:</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="stateCombo">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>20</y>
-     <width>73</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>410</x>
-     <y>20</y>
-     <width>71</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Parameter:</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="parameterCombo">
-   <property name="geometry">
-    <rect>
-     <x>490</x>
-     <y>20</y>
-     <width>201</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>710</x>
-     <y>20</y>
-     <width>71</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>ColorMap:</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="colorCombo">
-   <property name="geometry">
-    <rect>
-     <x>790</x>
-     <y>20</y>
-     <width>91</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>51</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Plate:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="plateCombo">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>10</y>
+        <width>171</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>10</y>
+        <width>41</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>State:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="stateCombo">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>10</y>
+        <width>73</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>10</y>
+        <width>71</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Parameter:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="parameterCombo">
+      <property name="geometry">
+       <rect>
+        <x>430</x>
+        <y>10</y>
+        <width>201</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>640</x>
+        <y>10</y>
+        <width>71</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>ColorMap:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="colorCombo">
+      <property name="geometry">
+       <rect>
+        <x>710</x>
+        <y>10</y>
+        <width>91</width>
+        <height>22</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableView" name="tableView">
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>50</number>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>50</number>
+     </attribute>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

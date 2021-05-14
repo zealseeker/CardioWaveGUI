@@ -102,13 +102,13 @@ class PlateViewer(QtWidgets.QDialog):
         dfdata = {}
         for col in columns:
             dfdata[col] = []
-            for i in range(1, 17):
+            for i in range(1, 25):
                 well = col + str(i)
                 if well in df.index:
                     dfdata[col].append(df.loc[well, parameter])
                 else:
                     dfdata[col].append(np.nan)
-        df = pd.DataFrame(dfdata, index=list(range(1, 17)))
+        df = pd.DataFrame(dfdata, index=list(range(1, 25))).transpose()
         cmap_text = self.colorCombo.currentText()
         if cmap_text == 'None':
             cmap = None
@@ -140,7 +140,7 @@ class PlateViewer(QtWidgets.QDialog):
         if self.platedf is None:
             return
         row, col = signal.row(), signal.column()
-        well = COLUMNS[col] + str(row+1)
+        well = COLUMNS[row] + str(col+1)
         if well in self.platedf.index:
             waveform = self.platedf.loc[well, 'waveform']
             self.main_form.select_one_waveform(waveform)
