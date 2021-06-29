@@ -1,3 +1,12 @@
+# Copyright (C) 2021 by University of Cambridge
+
+# This software and algorithm was developed as part of the Cambridge Alliance
+# for Medicines Safety (CAMS) initiative, funded by AstraZeneca and
+# GlaxoSmithKline
+
+# This program is made available under the terms of the GNU General Public
+# License as published by the Free Software Foundation, either version 3 of the
+# License, or at your option, any later version.
 import sys
 import os
 import logging
@@ -16,7 +25,7 @@ from PyQt5.QtWidgets import QApplication, QDirModel, QTableWidgetItem, QGraphics
 from PyQt5.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 
 from cdwave import data, hillcurve, fnc
-from cdwave.fnc import Waveform, draw_multiple
+from cdwave.fnc import Waveform
 from cdwave import __version__ as cdwave_version
 
 from CardioWaveGUI import __version__
@@ -34,7 +43,7 @@ class ProcessWindow(QtWidgets.QDialog):
 
     def __init__(self, parent):
         super(ProcessWindow, self).__init__(parent)
-        uic.loadUi('process_dialog.ui', self)
+        uic.loadUi(os.path.join(config.root, 'process_dialog.ui'), self)
         self.pushButton.clicked.connect(self.close)
         self.total = 0
         self.i = 0
@@ -73,7 +82,7 @@ class ProcessWindow(QtWidgets.QDialog):
     def add_text(self, text):
         self.plainTextEdit.insertPlainText(text)
 
-    def add_text_line(self, text):
+    def add_text_line(self, text: str):
         line = text + '\n'
         self.add_text(line)
 
@@ -158,6 +167,7 @@ class NewForm(Form):
         self.actionAbout.triggered.connect(self.about_page)
         self.actionPlate_Viewer.triggered.connect(self.show_plate_viewer)
         self.actionOpen.triggered.connect(self.open_file)
+        self.actionFrom_CSV_file.triggered.connect(self.import_file)
         if 'path' in self.config.all_config['general']:
             self.lineEdit.setText(self.config.all_config['general']['path'])
 
@@ -265,7 +275,7 @@ class NewForm(Form):
         except ValueError as e:
             logger.warning("Cannot fit the curve, %s", str(e))
         except RuntimeError as e:
-            logger.warning("Cannot fit the curve")
+            logger.warning("Cannot fit the curve, %s", str(e))
         self.canvas2.draw()
 
     def welch_transform(self, _):
@@ -422,7 +432,7 @@ class NewForm(Form):
             dataframe = self.core_data.filtered_df
         logging.debug('Len(df) = %d', len(dataframe))
         span = 100 if self.checkBox_2.isChecked() else 0
-        draw_multiple(self.figure3, dataframe, span)
+        draw.draw_multiple(self.figure3, dataframe, span)
         self.canvas3.draw()
 
     def select_one_waveform(self, waveform: data.WaveformFull):
@@ -568,6 +578,31 @@ class NewForm(Form):
         fname, _ = QFileDialog.getOpenFileName(
             self.window, 'Open a wavefom file', default_directory, "Gzip File (*.pickle.gz)")
         self.selected_file(fname)
+
+    def import_file(self):
+        default_directory = self.config.all_config['general'].get(
+            'path', '.')
+        fname, _ = QFileDialog.getOpenFileName(
+            self.window, 'Open a wavefom file', default_directory, "CSV File (*.csv)")
+        oname, _ = QFileDialog.getSaveFileName(
+            self.window, 'Save waveform data to', default_directory, "(*.*)"
+        )
+        if not oname:
+            return False
+        dialog = ProcessWindow(self.window)
+        dialog.show()
+        dialog.process_wrapper(0, 1)
+        dialog.add_text_line('Loading ...')
+        try:
+            dataset = data.StandardCSVLoader(fname).transfer()
+        except Exception as e:
+            dialog.add_text_line(e)
+            return False
+        dialog.process_wrapper(2, 1)
+        dialog.add_text_line('Saving ...')
+        dataset.save(oname)
+        dialog.add_text_line('Done!')
+        dialog.process_wrapper(2, 1) # Repeat because it does not calculate parameters
 
     def show_plate_viewer(self):
         if self.core_data is None:

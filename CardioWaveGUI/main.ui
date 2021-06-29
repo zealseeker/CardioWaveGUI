@@ -826,7 +826,14 @@ compound=Doxorubicin</string>
      <addaction name="actionThis_waveform"/>
      <addaction name="actionParameters"/>
     </widget>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>Import</string>
+     </property>
+     <addaction name="actionFrom_CSV_file"/>
+    </widget>
     <addaction name="actionOpen"/>
+    <addaction name="menuImport"/>
     <addaction name="menuExport"/>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -892,6 +899,11 @@ compound=Doxorubicin</string>
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
+   </property>
+  </action>
+  <action name="actionFrom_CSV_file">
+   <property name="text">
+    <string>From CSV file</string>
    </property>
   </action>
  </widget>
