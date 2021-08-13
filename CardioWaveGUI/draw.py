@@ -22,7 +22,7 @@ def plot_hillcurve(curve: HillCurve, density=0.1, ax:Axes=None, ylabel=None):
         x, *curve.popt) * curve.p_diff + curve.p_min)
     ax.plot(cc, vsigmoid(cc))
     ax.plot(curve.concentrations, curve.responses, 'o', label="normal")
-    ax.text(0.7, 0.2, 'EC50: {:.2f}'.format(curve.EC50), transform=ax.transAxes)
+    ax.text(0.7, 0.2, 'EC50: {:.2f}'.format(curve.EC50()), transform=ax.transAxes)
     if ylabel:
         ax.set_ylabel(ylabel)
     return ax
@@ -36,7 +36,7 @@ def plot_tcpl_curves(curves: List[TCPL], density=0.1, ax:Axes=None, ylabel=None)
         fnc = np.vectorize(curve.predict)
         label = '{}-{:.2f}'.format(type(curve).__name__, curve.RMSD)
         ax.plot(cc, fnc(cc), label=label)
-    ax.text(0.7, 0.2, 'EC50: {:.2f}'.format(curves[0].EC50), transform=ax.transAxes)
+    ax.text(0.7, 0.2, 'EC50: {:.2f}'.format(curves[0].EC50()), transform=ax.transAxes)
     ax.plot(curve.concentrations, curve.responses, 'o', label="normal")
     ax.legend()
     if ylabel:

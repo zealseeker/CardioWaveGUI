@@ -153,7 +153,6 @@ class NewForm(Form):
         self.scene1.addWidget(self.canvas1)
         self.scene2.addWidget(self.canvas2)
         self.scene3.addWidget(self.canvas3)
-        self.actionThis_waveform.triggered.connect(self.export_waveform)
         self.action_fft.triggered.connect(self.fft_transform)
         self.action_welch.triggered.connect(self.welch_transform)
         self.comboBox.activated.connect(self.activate_filter_list)
@@ -264,18 +263,14 @@ class NewForm(Form):
         p = self.selecting_parameter
         df = self.core_data.filtered_df.copy()
         df[p] = [x.get_parameters()[p] for x in df.waveform]
-        try:
-            # popt, perr, curve = hillcurve.fit_parameter(df, p)
-            conc, resp = df.concentration, df[p]
-            curves = [hillcurve.TCPLHill(conc, resp),
-                      hillcurve.TCPLGainLoss(conc, resp),
-                      hillcurve.TCPLPlain(conc, resp)]
-            # self.window.statusBar().showMessage('{}, {}'.format(popt, perr))
-            draw.plot_tcpl_curves(curves, ax=ax, ylabel=p)
-        except ValueError as e:
-            logger.warning("Cannot fit the curve, %s", str(e))
-        except RuntimeError as e:
-            logger.warning("Cannot fit the curve, %s", str(e))
+        conc, resp = df.concentration, df[p]
+        curves = []
+        for mod in [hillcurve.TCPLPlain, hillcurve.TCPLHill, hillcurve.TCPLGainLoss]:
+            try:
+                curves.append(mod(conc, resp))
+            except (ValueError, RuntimeError) as e:
+                logger.warning("Cannot fit the curve, %s", str(e))
+        draw.plot_tcpl_curves(curves, ax=ax, ylabel=p)
         self.canvas2.draw()
 
     def welch_transform(self, _):
@@ -562,7 +557,7 @@ class NewForm(Form):
     def export_parameters(self):
         default_directory = self.config.all_config['general'].get(
             'export_directory', '.')
-        fname, _ = QFileDialog.getSaveFileName(self.window, 'Save waveform',
+        fname, _ = QFileDialog.getSaveFileName(self.window, 'Save parameters',
                                                default_directory, "Text File (*.csv)")
         if not fname:
             return None
